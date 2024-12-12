@@ -1,5 +1,5 @@
 import g from "@/lib/gptScriptInstance";
-import { RunOpts } from "@gptscript-ai/gptscript";
+import { RunEventType, RunOpts } from "@gptscript-ai/gptscript";
 import { NextRequest } from "next/server";
 
 
@@ -20,12 +20,28 @@ export async function POST(request:NextRequest){
             async start(controller){
                 try {
                     const run = await g.run(script,opts);
+
+                    run.on(RunEventType.Event,(data)=>{
+                        controller.enqueue(
+                            encoder.encode(`event: ${JSON.stringify(data)}\n\n`)
+                        );
+                    });
+                    await run.text();
+                    controller.close();
                 } catch (error) {
                   controller.error(error)
                   console.error("Error:",error)                   
                 }
             }
-        })
+        });
+
+        return new Response(stream,{
+            headers:{
+                "Content-Type":"text/event-stream",
+                "Cache-Control":"no-cache",
+                Connection:"keep-alive",
+            },
+        });
     } catch (error) {
         return new Response(JSON.stringify({error:error}),{
             status:500,

@@ -32,12 +32,62 @@ function StoryWriter() {
         //handle streams from the API
         //...
         console.log("Streaming started");
-        //...
+        
+
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+
+        handleStream(reader,decoder);
      }else{
         setRunFinished(true);
         setRunStarted(false);
         console.error("Failed to start streaming");
      }
+    }
+
+    async function handleStream(
+        reader:ReadableStreamDefaultReader<Uint8Array>,
+        decoder:TextDecoder
+    ){
+        //Manage the stream from the API...
+        while(true){
+            const {done,value}=await reader.read();
+
+            if(done)break;//breaks out of the infinite loop!
+
+            const chunk = decoder.decode(value,{stream:true});
+
+            //Explanation : we split the chunk into events by splitting it by the event:keyword.
+
+            const eventData = chunk 
+            .split("\n\n")
+            .filter((line)=>line.startsWith("events:"))
+            .map((line)=>line.replace(/^event: /,""));
+
+
+            //Explanation: we parse the JSON data and update the state accordingly
+
+            eventData.forEach(data =>{
+                try {
+                    const parsedData = JSON.parse(data);
+
+                    if(parsedData.type === "callProgress"){
+                        setProgress(
+                            parsedData.output[parsedData.output.length - 1].content
+                        )
+                        setCurrentTool(parsedData.tool?.description || "");
+                    }else if(parsedData.type === "callStart"){
+                        setCurrentTool(parsedData.tool?.description || "");
+                    }else if (parsedData.type === "runFinish"){
+                        setRunFinished(true);
+
+                        setRunStarted(false);
+                    }
+                } catch (error) {
+                    
+                }
+            })
+        }
     }
   return (
     <div className="flex flex-col container">
