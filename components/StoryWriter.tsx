@@ -4,6 +4,8 @@ import { useState } from "react";
 import { Button } from "./ui/button"
 import { Select, SelectTrigger, SelectValue,SelectContent, SelectItem } from "./ui/select"
 import { Textarea } from "./ui/textarea"
+import { Frame } from "@gptscript-ai/gptscript";
+import renderEventMessage from "@/lib/renderEventMessage";
 
 const storiesPath = "public/stories";
 
@@ -15,6 +17,7 @@ function StoryWriter() {
     const [runStarted,setRunStarted]=useState<boolean>(false);
     const [runFinished,setRunFinished]=useState<boolean | null>(null);
     const [currentTool,setCurrentTool]=useState("");
+    const [events,setEvents]=useState<Frame[]>([]);
 
     async function runScript(){
         setRunStarted(true);
@@ -82,9 +85,11 @@ function StoryWriter() {
                         setRunFinished(true);
 
                         setRunStarted(false);
+                    }else{
+                        setEvents((prevEvents)=>[...prevEvents,parsedData]);
                     }
                 } catch (error) {
-                    
+                    console.error("Failed to parse JSON",error)
                 }
             })
         }
@@ -140,6 +145,17 @@ function StoryWriter() {
                 )}
 
                 {/**Render Events... */}
+                <div className="space-y-5">
+                    {events.map((event,index)=>(
+                        <div key={index}>
+                            <span className="mr-5">{">>"}</span>
+                            {renderEventMessage(event)}
+                        </div>
+                    ))}
+
+                </div>
+
+
                 {runStarted && (
                     <div>
                         <span className="mr-5 animate-in">
