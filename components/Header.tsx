@@ -3,7 +3,7 @@ import Link from "next/link"
 
 function Header() {
   return (
-    <header>
+    <header className="relative p-16 text-center">
         <Link href="/">
         <h1 className="text-6xl font-black">StoryTeller AI</h1>
         <div className="flex justify-center whitespace-nowrap space-x-5 text-3xl lg:text-5xl">
@@ -16,10 +16,10 @@ function Header() {
         </Link>
 
         {/** Nav icons */}
-        <div>
+        <div className="absolute -top-5 right-5 flex space-x-2">
             <Link href='/'>
             <FilePen 
-             className="w-8 h-8 lg:w-10 mx-auto text-purple-500 mt-10 border border-purple-500 p-2 rounded-md hover:opacity-50 cursor-pointer"
+             className="w-8 h-8 lg:w-10 lg:h-10 mx-auto text-purple-500 mt-10 border border-purple-500 p-2 rounded-md hover:opacity-50 cursor-pointer"
             />
             </Link>
 
